@@ -21,27 +21,35 @@ st.markdown("""
 # 데이터 로드 함수
 @st.cache_data
 def load_data():
-    # CSV 파일을 업로드하거나 샘플 데이터 생성
+    """기본 파일을 먼저 시도하고, 없으면 None 반환"""
     try:
-        # 실제 환경에서는 st.file_uploader로 파일을 업로드하거나
-        # GitHub 등에서 직접 로드할 수 있습니다
         df = pd.read_csv('countriesMBTI_16types.csv')
-        return df
-    except:
-        # 샘플 데이터 생성 (실제 사용 시에는 실제 CSV 파일을 사용)
-        st.warning("CSV 파일을 로드할 수 없습니다. 파일 업로더를 사용하세요.")
-        return None
+        return df, True  # 성공적으로 로드됨
+    except FileNotFoundError:
+        return None, False  # 파일이 없음
 
-# 파일 업로더
-uploaded_file = st.file_uploader(
-    "MBTI 데이터 CSV 파일을 업로드하세요",
-    type=['csv'],
-    help="countriesMBTI_16types.csv 파일을 업로드하세요"
-)
+# 데이터 로드 시도
+df, file_loaded = load_data()
 
-if uploaded_file is not None:
-    # 데이터 로드
-    df = pd.read_csv(uploaded_file)
+# 파일 로드 상태에 따른 처리
+if file_loaded:
+    st.success("✅ 기본 데이터 파일(countriesMBTI_16types.csv)을 성공적으로 로드했습니다!")
+    uploaded_file = None
+else:
+    st.info("📁 기본 데이터 파일을 찾을 수 없습니다. CSV 파일을 업로드해주세요.")
+    uploaded_file = st.file_uploader(
+        "MBTI 데이터 CSV 파일을 업로드하세요",
+        type=['csv'],
+        help="countriesMBTI_16types.csv 파일을 업로드하세요"
+    )
+    
+    if uploaded_file is not None:
+        # 업로드된 파일로 데이터 로드
+        df = pd.read_csv(uploaded_file)
+        st.success("✅ 업로드된 파일을 성공적으로 로드했습니다!")
+
+# 데이터가 로드된 경우에만 분석 진행
+if df is not None:
     
     # MBTI 유형 리스트
     mbti_types = ['INFJ', 'ISFJ', 'INTP', 'ISFP', 'ENTP', 'INFP', 
